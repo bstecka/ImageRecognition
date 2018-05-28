@@ -1,11 +1,11 @@
 package com.company;
 
 public class Point {
-    public double x;
-    public double y;
-    public int[] descriptor;
+    public float x;
+    public float y;
+    public short[] descriptor;
 
-    public Point(double x, double y, int[] descriptor) {
+    public Point(float x, float y, short[] descriptor) {
         this.x = x;
         this.y = y;
         this.descriptor = descriptor;

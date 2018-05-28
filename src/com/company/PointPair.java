@@ -16,4 +16,9 @@ public class PointPair {
     public Point getValue() {
         return point2;
     }
+
+    @Override
+    public String toString() {
+        return  "{ " + point1.toString() + ", " + point2.toString() + " }";
+    }
 }

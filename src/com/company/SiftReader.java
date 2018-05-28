@@ -21,7 +21,7 @@ public class SiftReader {
             keyPoints = new Point[keyCount];
             int pointIndex = 0;
             while (scanner.hasNextLine()) {
-                int[] descriptor = new int[traitCount];
+                short[] descriptor = new short[traitCount];
                 float x, y;
                 if (scanner.hasNextFloat()) {
                     x = scanner.nextFloat();
@@ -30,7 +30,7 @@ public class SiftReader {
                     scanner.next();
                     scanner.next();
                     for (int i = 0; i < traitCount; i++) {
-                        descriptor[i] = scanner.nextInt();
+                        descriptor[i] = (short) scanner.nextInt();
                     }
                     keyPoints[pointIndex] = new Point(x, y, descriptor);
                     pointIndex++;
