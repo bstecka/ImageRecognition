@@ -12,9 +12,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.transform.Scale;
 import javafx.stage.Screen;
@@ -30,24 +27,21 @@ public class ImageViewFx extends Application {
     SiftImage image1, image2;
     Image img, img2;
     PointPair[] matches;
-    double xTranslate = 0;
 
     private Parent createContent() {
         String fileName = "samochod";
         this.image1 = new SiftImage(Const.PATH + fileName + ".png.haraff.sift");
         this.image2 = new SiftImage(Const.PATH + fileName + "2.png.haraff.sift");
-        //this.matches = image1.getKeyPointPairs(image2);
         this.matches = image1.getConsistentPairs(image2, 15, 2);
-        AnchorPane root = new AnchorPane();
         this.img = new Image("file:/Users/Piotr/Desktop/zdj/" + fileName + ".png/");
         this.img2 = new Image("file:/Users/Piotr/Desktop/zdj/" + fileName + "2.png/");
-        xTranslate = img.getWidth();
+        AnchorPane anchor = new AnchorPane();
         ImageView imageView1 = new ImageView(img);
         ImageView imageView2 = new ImageView(img2);
         imageView2.setLayoutX(img.getWidth());
-        root.getChildren().add(imageView1);
-        root.getChildren().add(imageView2);
-        AnchorPane processed = processMatches(root);
+        anchor.getChildren().add(imageView1);
+        anchor.getChildren().add(imageView2);
+        AnchorPane processed = processMatches(anchor);
         ScrollPane sp = new ScrollPane();
         sp.setContent(processed);
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
