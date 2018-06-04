@@ -1,5 +1,7 @@
 package com.company;
 
+import java.util.Arrays;
+
 public class Point {
     public float x;
     public float y;
@@ -21,5 +23,13 @@ public class Point {
     @Override
     public String toString() {
         return  "(" + x + ", " + y + ")";
+    }
+
+    @Override
+    public boolean equals (Object o) {
+        if (!(o instanceof Point))
+            return false;
+        Point other = (Point) o;
+        return x == other.x && y == other.y && Arrays.equals(descriptor, other.descriptor);
     }
 }

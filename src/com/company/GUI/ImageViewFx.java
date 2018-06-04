@@ -3,6 +3,7 @@ package com.company.GUI;
 import com.company.Const;
 import com.company.PointPair;
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -25,14 +26,14 @@ public class ImageViewFx extends Application {
     PointPair[] matches;
 
     private Parent createContent() {
-        this.image1 = new SiftImage(Const.PATH + "3.png.haraff.sift");
-        this.image2 = new SiftImage(Const.PATH + "3.png.haraff.sift");
-        this.matches = image1.getKeyPointPairs(image2);
-        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+        this.image1 = new SiftImage(Const.PATH + "ksiaz.png.haraff.sift");
+        this.image2 = new SiftImage(Const.PATH + "ksiaz2.png.haraff.sift");
+        //this.matches = image1.getKeyPointPairs(image2);
+        this.matches = image1.getConsistentPairs(image2, 15, 1);
         StackPane root = new StackPane();
-        root.setPrefSize(1190, 800);
-        ImageView imageView1 = new ImageView(new Image("file:/Users/Piotr/Desktop/zdj/3.png/"));
-        ImageView imageView2 = new ImageView(new Image("file:/Users/Piotr/Desktop/zdj/3.png/"));
+        root.setPrefSize(1290, 300);
+        ImageView imageView1 = new ImageView(new Image("file:/Users/Piotr/Desktop/zdj/ksiaz.png/"));
+        ImageView imageView2 = new ImageView(new Image("file:/Users/Piotr/Desktop/zdj/ksiaz2.png/"));
         root.getChildren().addAll(imageView1, imageView2);
         StackPane.setAlignment(imageView1, Pos.TOP_LEFT);
         StackPane.setAlignment(imageView2, Pos.TOP_RIGHT);
@@ -57,7 +58,7 @@ public class ImageViewFx extends Application {
                 root.getChildren().add(line);
                 line.setStartX(pair.getKey().x);
                 line.setStartY(pair.getKey().y);
-                line.setEndX(pair.getValue().x + 600);
+                line.setEndX(pair.getValue().x + 650);
                 line.setEndY(pair.getValue().y);
                 StackPane.setAlignment(line, Pos.TOP_LEFT);
                 line.setTranslateX(pair.getKey().x);
@@ -67,17 +68,13 @@ public class ImageViewFx extends Application {
         return root;
     }
 
-    public static Point2D getDirection(Circle c1, Circle c2) {
-        return new Point2D(c2.getCenterX() - c1.getCenterX(), c2.getCenterY() - c1.getCenterY()).normalize();
-    }
-
     @Override
     public void start(Stage primaryStage) throws Exception {
         Scene scene = new Scene(createContent());
         Scale scale = new Scale(0.8, 0.8);
         scale.setPivotX(0);
         scale.setPivotY(0);
-        primaryStage.setTitle("Images");
+        primaryStage.setTitle("Pary punktów kluczowych");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();

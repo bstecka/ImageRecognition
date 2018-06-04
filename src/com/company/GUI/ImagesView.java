@@ -114,7 +114,7 @@ public class ImagesView {
         MatOfKeyPoint matKey2 = new MatOfKeyPoint(keyPoints2);
         MatOfDMatch matDMatch = new MatOfDMatch(matches);
         Mat output = new Mat();
-        //output = new Mat(matKey1.rows(), matKey1.cols(), CvType.CV_8U, Scalar.all(0));
+        output = new Mat(matKey1.rows() * 2, matKey1.cols(), CvType.CV_8U, Scalar.all(0));
         if (!output.empty())
             System.out.println("not empty");
         else
