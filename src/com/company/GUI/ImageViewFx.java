@@ -18,6 +18,8 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Random;
 
 public class ImageViewFx extends Application {
@@ -26,14 +28,16 @@ public class ImageViewFx extends Application {
     PointPair[] matches;
 
     private Parent createContent() {
-        this.image1 = new SiftImage(Const.PATH + "ksiaz.png.haraff.sift");
-        this.image2 = new SiftImage(Const.PATH + "ksiaz2.png.haraff.sift");
+        String fileName = "samochod";
+        this.image1 = new SiftImage(Const.PATH + fileName + ".png.haraff.sift");
+        this.image2 = new SiftImage(Const.PATH + fileName + "2.png.haraff.sift");
         //this.matches = image1.getKeyPointPairs(image2);
-        this.matches = image1.getConsistentPairs(image2, 15, 1);
+        this.matches = image1.getConsistentPairs(image2, 15, 2);
+        System.out.println(Arrays.toString(matches));
         StackPane root = new StackPane();
         root.setPrefSize(1290, 300);
-        ImageView imageView1 = new ImageView(new Image("file:/Users/Piotr/Desktop/zdj/ksiaz.png/"));
-        ImageView imageView2 = new ImageView(new Image("file:/Users/Piotr/Desktop/zdj/ksiaz2.png/"));
+        ImageView imageView1 = new ImageView(new Image("file:/Users/Piotr/Desktop/zdj/" + fileName + ".png/"));
+        ImageView imageView2 = new ImageView(new Image("file:/Users/Piotr/Desktop/zdj/" + fileName + "2.png/"));
         root.getChildren().addAll(imageView1, imageView2);
         StackPane.setAlignment(imageView1, Pos.TOP_LEFT);
         StackPane.setAlignment(imageView2, Pos.TOP_RIGHT);
@@ -53,16 +57,20 @@ public class ImageViewFx extends Application {
         for (int i = 0; i < matches.length; i++){
             if (matches[i] != null) {
                 PointPair pair = matches[i];
-                Line line = new Line();
-                line.setStroke(randomColor());
-                root.getChildren().add(line);
-                line.setStartX(pair.getKey().x);
-                line.setStartY(pair.getKey().y);
-                line.setEndX(pair.getValue().x + 650);
-                line.setEndY(pair.getValue().y);
-                StackPane.setAlignment(line, Pos.TOP_LEFT);
-                line.setTranslateX(pair.getKey().x);
-                line.setTranslateY(pair.getKey().y);
+                if (i > matches.length/2 && i < 4 * matches.length/5 && i%3 == 0 && i%2 == 1 && i%4 == 1) {
+                    System.out.println("LINE");
+                    System.out.println(pair);
+                    Line line = new Line();
+                    line.setStroke(randomColor());
+                    root.getChildren().add(line);
+                    line.setStartX(pair.getKey().x);
+                    line.setStartY(pair.getKey().y);
+                    line.setEndX(pair.getValue().x + 650);
+                    line.setEndY(pair.getValue().y);
+                    StackPane.setAlignment(line, Pos.TOP_LEFT);
+                    line.setTranslateX(pair.getKey().x);
+                    line.setTranslateY(pair.getKey().y);
+                }
             }
         }
         return root;

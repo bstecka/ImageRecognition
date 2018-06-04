@@ -242,25 +242,25 @@ public class SiftImage {
         return A;
     }
 
-    public Point[] getNeighbours(Point point, int n) {
+    public Point[] getNeighbours(Point point, int n, Point[] keyPoints) {
         Point[] neigbhoursTemp = new Point[n];
-        int diff, m = 0, minDiff = Integer.MAX_VALUE;
+        int[] diffs = new int[keyPoints.length];
+        int diff, m = 0;
         for (int i = 0; i < keyPoints.length; i++){
-            diff = point.getDistance(keyPoints[i]);
-            if (diff < minDiff && diff != 0)
-                minDiff = diff;
+            diffs[i] = point.getDistance(keyPoints[i]);
         }
-        System.out.println("MINDIFF " + minDiff);
+        Arrays.sort(diffs);
+        int nthDiff = diffs[n];
         for (int i = 0; i < keyPoints.length && m < n; i++){
             diff = point.getDistance(keyPoints[i]);
-            if (diff == minDiff) {
+            if (diff < nthDiff) {
                 neigbhoursTemp[m] = keyPoints[i];
                 m++;
             }
         }
-        Point[] neigbhours = new Point[m];
-        System.arraycopy(neigbhoursTemp, 0, neigbhours, 0, m);
-        return neigbhours;
+        Point[] neighbours = new Point[m];
+        System.arraycopy(neigbhoursTemp, 0, neighbours, 0, m);
+        return neighbours;
     }
 
     private boolean contains(Point[] array, Point point){
@@ -284,21 +284,22 @@ public class SiftImage {
     public PointPair[] getConsistentPairs(SiftImage otherImage, int neighbourSize, int threshold){
         PointPair[] pairs = getKeyPointPairs(otherImage);
         PointPair[] consistentPairsTemp = new PointPair[pairs.length];
+        Point[] otherKeyPoints = otherImage.keyPoints;
         int c = 0;
         for (int i = 0; i < pairs.length; i++){
             Point Pi = pairs[i].getKey();
             Point Pj = pairs[i].getValue();
-            Point[] PiNeighbours = getNeighbours(Pi, neighbourSize);
-            Point[] PjNeighbours = getNeighbours(Pj, neighbourSize);
-            System.out.println(PiNeighbours.length + ", " + PjNeighbours.length);
+            Point[] PiNeighbours = getNeighbours(Pi, neighbourSize, keyPoints);
+            Point[] PjNeighbours = getNeighbours(Pj, neighbourSize, otherKeyPoints);
             int nOfNeighbouringPairs = 0;
             for (int j = i + 1; j < pairs.length && nOfNeighbouringPairs < threshold; j++){
                 Point Qi = pairs[j].getKey();
                 Point Qj = pairs[j].getValue();
-                if (contains(PiNeighbours, Qi) && contains(PjNeighbours, Qj))
+                if (contains(PiNeighbours, Qi) && contains(PjNeighbours, Qj)) {
                     nOfNeighbouringPairs++;
+                }
             }
-            System.out.println(nOfNeighbouringPairs);
+            //System.out.println(nOfNeighbouringPairs);
             if (nOfNeighbouringPairs >= threshold) {
                 consistentPairsTemp[c] = pairs[i];
                 c++;
