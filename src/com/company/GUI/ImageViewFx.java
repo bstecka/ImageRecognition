@@ -9,7 +9,10 @@ import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -25,7 +28,9 @@ import java.util.Random;
 public class ImageViewFx extends Application {
 
     SiftImage image1, image2;
+    Image img, img2;
     PointPair[] matches;
+    double xTranslate = 0;
 
     private Parent createContent() {
         String fileName = "samochod";
@@ -33,16 +38,21 @@ public class ImageViewFx extends Application {
         this.image2 = new SiftImage(Const.PATH + fileName + "2.png.haraff.sift");
         //this.matches = image1.getKeyPointPairs(image2);
         this.matches = image1.getConsistentPairs(image2, 15, 2);
-        System.out.println(Arrays.toString(matches));
-        StackPane root = new StackPane();
-        root.setPrefSize(1290, 300);
-        ImageView imageView1 = new ImageView(new Image("file:/Users/Piotr/Desktop/zdj/" + fileName + ".png/"));
-        ImageView imageView2 = new ImageView(new Image("file:/Users/Piotr/Desktop/zdj/" + fileName + "2.png/"));
-        root.getChildren().addAll(imageView1, imageView2);
-        StackPane.setAlignment(imageView1, Pos.TOP_LEFT);
-        StackPane.setAlignment(imageView2, Pos.TOP_RIGHT);
-        StackPane processed = processMatches(root);
-        return processed;
+        AnchorPane root = new AnchorPane();
+        this.img = new Image("file:/Users/Piotr/Desktop/zdj/" + fileName + ".png/");
+        this.img2 = new Image("file:/Users/Piotr/Desktop/zdj/" + fileName + "2.png/");
+        xTranslate = img.getWidth();
+        ImageView imageView1 = new ImageView(img);
+        ImageView imageView2 = new ImageView(img2);
+        imageView2.setLayoutX(img.getWidth());
+        root.getChildren().add(imageView1);
+        root.getChildren().add(imageView2);
+        AnchorPane processed = processMatches(root);
+        ScrollPane sp = new ScrollPane();
+        sp.setContent(processed);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        return sp;
     }
 
     private javafx.scene.paint.Color randomColor() {
@@ -53,24 +63,13 @@ public class ImageViewFx extends Application {
         return javafx.scene.paint.Color.rgb(r, g, b);
     }
 
-    private StackPane processMatches(StackPane root) {
+    private AnchorPane processMatches(AnchorPane root) {
         for (int i = 0; i < matches.length; i++){
             if (matches[i] != null) {
                 PointPair pair = matches[i];
-                if (i > matches.length/2 && i < 4 * matches.length/5 && i%3 == 0 && i%2 == 1 && i%4 == 1) {
-                    System.out.println("LINE");
-                    System.out.println(pair);
-                    Line line = new Line();
-                    line.setStroke(randomColor());
-                    root.getChildren().add(line);
-                    line.setStartX(pair.getKey().x);
-                    line.setStartY(pair.getKey().y);
-                    line.setEndX(pair.getValue().x + 650);
-                    line.setEndY(pair.getValue().y);
-                    StackPane.setAlignment(line, Pos.TOP_LEFT);
-                    line.setTranslateX(pair.getKey().x);
-                    line.setTranslateY(pair.getKey().y);
-                }
+                Line line = new Line(pair.getKey().x, pair.getKey().y, pair.getValue().x + img.getWidth(), pair.getValue().y);
+                line.setStroke(randomColor());
+                root.getChildren().add(line);
             }
         }
         return root;
@@ -78,10 +77,8 @@ public class ImageViewFx extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Scene scene = new Scene(createContent());
-        Scale scale = new Scale(0.8, 0.8);
-        scale.setPivotX(0);
-        scale.setPivotY(0);
+        Scene scene = new Scene(createContent(), Math.min(img.getWidth() + img2.getWidth(), 1000),
+                Math.min(Math.max(img.getHeight(), img2.getHeight()), 680));
         primaryStage.setTitle("Pary punktów kluczowych");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);

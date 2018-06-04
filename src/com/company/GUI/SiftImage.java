@@ -299,7 +299,6 @@ public class SiftImage {
                     nOfNeighbouringPairs++;
                 }
             }
-            //System.out.println(nOfNeighbouringPairs);
             if (nOfNeighbouringPairs >= threshold) {
                 consistentPairsTemp[c] = pairs[i];
                 c++;
