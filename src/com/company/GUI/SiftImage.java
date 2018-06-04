@@ -81,10 +81,10 @@ public class SiftImage {
         Random rand = new Random();
         int[] ints = new int [sampleSize];
         for (int i = 0; i < sampleSize; i++){
-            int value = rand.nextInt(sampleSize);
-            while(contains(ints, value))
-                value = rand.nextInt(sampleSize);
-            ints[i] = value;
+            //int value = rand.nextInt(sampleSize);
+            //while(contains(ints, value))
+            //    value = rand.nextInt(sampleSize);
+            ints[i] = rand.nextInt(pairs.length);
         }
         PointPair[] samples = new PointPair[sampleSize];
         for (int i = 0; i < sampleSize; i++){
@@ -100,40 +100,49 @@ public class SiftImage {
         for (int i = 0; i < iterations; i++) {
             SimpleMatrix model = null;
             if (perspective) {
-                samples = getRandomSamples(getKeyPointPairs(otherImage), 4);
+                samples = getRandomSamples(pairs, 4);
                 model = calculateModelPerspective(samples);
             }
             else {
-                samples = getRandomSamples(getKeyPointPairs(otherImage), 3);
+                samples = getRandomSamples(pairs, 3);
+                //System.out.println(Arrays.toString(samples));
                 model = calculateModelAffine(samples);
             }
-            int score = 0;
-            double error;
-            for (int j = 0; j < pairs.length; j++){
-                if (perspective)
-                    error = getErrorPerspective(model, pairs[j]);
-                else
-                    error = getErrorAffine(model, pairs[j]);
-                if (error < maxError)
-                    score++;
-                else if (error > maxError)
-                    maxError = error;
-            }
-            if (score > bestScore) {
-                bestScore = score;
-                bestModel = model;
+            if (model != null) {
+                int score = 0;
+                double error;
+                for (int j = 0; j < pairs.length; j++) {
+                    if (perspective)
+                        error = getErrorPerspective(model, pairs[j]);
+                    else
+                        error = getErrorAffine(model, pairs[j]);
+                    if (error < maxError)
+                        score++;
+                    else if (error > maxError)
+                        maxError = error;
+                }
+                if (score > bestScore) {
+                    bestScore = score;
+                    //System.out.println(bestScore);
+                    bestModel = model;
+                    //System.out.println(bestModel.toString());
+                }
             }
         }
         return bestModel;
     }
 
     public PointPair[] getRANSACPairs(SiftImage otherImage, boolean perspective) {
-        SimpleMatrix model = getBestModelRANSAC(otherImage, 100, perspective);
+        SimpleMatrix model = getBestModelRANSAC(otherImage, 6000, perspective);
         PointPair[] pairs = getKeyPointPairs(otherImage);
         PointPair[] RANSACPairs = new PointPair[pairs.length];
         for (int i = 0; i < pairs.length; i++){
             Point first = pairs[i].getKey();
-            Point second = getPoint(model, first);
+            Point second;
+            if (perspective)
+                second = getPointPerspective(model, first);
+            else
+                second = getPointAffine(model, first);
             RANSACPairs[i] = new PointPair(first, second);
         }
         return RANSACPairs;
@@ -141,9 +150,9 @@ public class SiftImage {
 
     public double getErrorAffine(SimpleMatrix A, PointPair pair) {
         double[][] dB = new double[3][1];
-        dB[1][0] = pair.getKey().x;
-        dB[2][0] = pair.getKey().y;
-        dB[3][0] = 1;
+        dB[0][0] = pair.getKey().x;
+        dB[1][0] = pair.getKey().y;
+        dB[2][0] = 1;
         SimpleMatrix B = new SimpleMatrix(dB);
         SimpleMatrix result = A.mult(B);
         double u1 = result.get(0,0);
@@ -153,11 +162,11 @@ public class SiftImage {
         return Math.hypot(u1-u2, v1-v2);
     }
 
-    public Point getPoint(SimpleMatrix A, Point point) {
+    public Point getPointAffine(SimpleMatrix A, Point point) {
         double[][] dB = new double[3][1];
-        dB[1][0] = point.x;
-        dB[2][0] = point.y;
-        dB[3][0] = 1;
+        dB[0][0] = point.x;
+        dB[1][0] = point.y;
+        dB[2][0] = 1;
         SimpleMatrix B = new SimpleMatrix(dB);
         SimpleMatrix result = A.mult(B);
         float x = (float) result.get(0,0);
@@ -165,11 +174,26 @@ public class SiftImage {
         return new Point(x, y, new short[1]);
     }
 
+    public Point getPointPerspective(SimpleMatrix H, Point point) {
+        double[][] dB = new double[3][1];
+        dB[0][0] = point.x;
+        dB[1][0] = point.y;
+        dB[2][0] = 1;
+        SimpleMatrix B = new SimpleMatrix(dB);
+        SimpleMatrix result = H.mult(B);
+        double t = result.get(2,0);
+        double u1 = result.get(0,0)/t;
+        double v1 = result.get(1,0)/t;
+        float x = (float) u1;
+        float y = (float) v1;
+        return new Point(x, y, new short[1]);
+    }
+
     public double getErrorPerspective(SimpleMatrix H, PointPair pair) {
         double[][] dB = new double[3][1];
-        dB[1][0] = pair.getKey().x;
-        dB[2][0] = pair.getKey().y;
-        dB[3][0] = 1;
+        dB[0][0] = pair.getKey().x;
+        dB[1][0] = pair.getKey().y;
+        dB[2][0] = 1;
         SimpleMatrix B = new SimpleMatrix(dB);
         SimpleMatrix result = H.mult(B);
         double t = result.get(2,0);
@@ -196,16 +220,35 @@ public class SiftImage {
         }
         SimpleMatrix B = new SimpleMatrix(dB);
         SimpleMatrix C = new SimpleMatrix(dC);
-        SimpleMatrix result = B.transpose().mult(C);
-        SimpleMatrix A = new SimpleMatrix(6, 1);
-        A.set(0,0, result.get(0, 0));
-        A.set(0,1, result.get(1, 0));
-        A.set(0,2, result.get(2, 0));
-        A.set(1,0, result.get(3, 0));
-        A.set(1,1, result.get(4, 0));
-        A.set(1,2, result.get(5, 0));
-        A.set(2,2,1);
-        return A;
+        if (B.determinant() == 0)
+            return null;
+        else {
+            SimpleMatrix BInverse = B.invert();
+            SimpleMatrix result = BInverse.mult(C);
+            SimpleMatrix A = new SimpleMatrix(3, 3);
+            A.set(0, 0, result.get(0, 0));
+            A.set(0, 1, result.get(1, 0));
+            A.set(0, 2, result.get(2, 0));
+            A.set(1, 0, result.get(3, 0));
+            A.set(1, 1, result.get(4, 0));
+            A.set(1, 2, result.get(5, 0));
+            A.set(2, 2, 1);
+            return A;
+        }
+    }
+
+    void printArray(double [][] array) {
+        StringBuilder sb = new StringBuilder();
+        for(double[] s1 : array){
+            sb.append("{");
+            for(double s2 : s1){
+                sb.append(s2 + ", ");
+            }
+            sb.append("}");
+            sb.append(", ");
+        }
+        String table = sb.toString();
+        System.out.println(table);
     }
 
     private SimpleMatrix calculateModelPerspective(PointPair[] s) {
@@ -221,25 +264,30 @@ public class SiftImage {
             dB[i][2] = dB[i+4][5] = 1;
             dC[i][0] = u;
             dC[i+4][0] = v;
-            dB[i][6] = -u * x;
-            dB[i+4][6] = -v * x;
-            dB[i][7] = -u * y;
-            dB[i+4][7] = -v * y;
+            dB[i][6] = (-1) * u * x;
+            dB[i+4][6] = (-1) * v * x;
+            dB[i][7] = (-1) * u * y;
+            dB[i+4][7] = (-1) * v * y;
         }
         SimpleMatrix B = new SimpleMatrix(dB);
-        SimpleMatrix C = new SimpleMatrix(dC);
-        SimpleMatrix result = B.transpose().mult(C);
-        SimpleMatrix A = new SimpleMatrix(6, 1);
-        A.set(0,0, result.get(0, 0));
-        A.set(0,1, result.get(1, 0));
-        A.set(0,2, result.get(2, 0));
-        A.set(1,0, result.get(3, 0));
-        A.set(1,1, result.get(4, 0));
-        A.set(1,2, result.get(5, 0));
-        A.set(2,0,result.get(6, 0));
-        A.set(2,1,result.get(7, 0));
-        A.set(2,2,1);
-        return A;
+        if (B.determinant() == 0)
+            return null;
+        else {
+            SimpleMatrix C = new SimpleMatrix(dC);
+            SimpleMatrix BInverse = B.invert();
+            SimpleMatrix result = BInverse.mult(C);
+            SimpleMatrix A = new SimpleMatrix(3, 3);
+            A.set(0, 0, result.get(0, 0));
+            A.set(0, 1, result.get(1, 0));
+            A.set(0, 2, result.get(2, 0));
+            A.set(1, 0, result.get(3, 0));
+            A.set(1, 1, result.get(4, 0));
+            A.set(1, 2, result.get(5, 0));
+            A.set(2, 0, result.get(6, 0));
+            A.set(2, 1, result.get(7, 0));
+            A.set(2, 2, 1);
+            return A;
+        }
     }
 
     public Point[] getNeighbours(Point point, int n, Point[] keyPoints) {

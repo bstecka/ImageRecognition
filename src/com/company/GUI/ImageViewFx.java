@@ -30,20 +30,23 @@ public class ImageViewFx extends Application {
 
     private Parent createContent() {
         String fileName = "samochod";
-        this.image1 = new SiftImage(Const.PATH + fileName + ".png.haraff.sift");
-        this.image2 = new SiftImage(Const.PATH + fileName + "2.png.haraff.sift");
-        this.matches = image1.getConsistentPairs(image2, 15, 2);
-        this.img = new Image("file:/Users/Piotr/Desktop/zdj/" + fileName + ".png/");
-        this.img2 = new Image("file:/Users/Piotr/Desktop/zdj/" + fileName + "2.png/");
+        String fileName2 = fileName+"2";
+        //fileName2 = "7";
+        this.image1 = new SiftImage(Const.PATH_SIFT + fileName + ".png.haraff.sift");
+        this.image2 = new SiftImage(Const.PATH_SIFT + fileName2 + ".png.haraff.sift");
+        //this.matches = image1.getConsistentPairs(image2, 15, 2);
+        this.matches = image1.getRANSACPairs(image2, true);
+        System.out.println(Arrays.toString(matches));
+        this.img = new Image(Const.PATH_PNG + fileName + ".png/");
+        this.img2 = new Image(Const.PATH_PNG + fileName2 + ".png/");
         AnchorPane anchor = new AnchorPane();
         ImageView imageView1 = new ImageView(img);
         ImageView imageView2 = new ImageView(img2);
         imageView2.setLayoutX(img.getWidth());
         anchor.getChildren().add(imageView1);
         anchor.getChildren().add(imageView2);
-        AnchorPane processed = processMatches(anchor);
         ScrollPane sp = new ScrollPane();
-        sp.setContent(processed);
+        sp.setContent(processMatches(anchor));
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         return sp;
@@ -61,9 +64,13 @@ public class ImageViewFx extends Application {
         for (int i = 0; i < matches.length; i++){
             if (matches[i] != null) {
                 PointPair pair = matches[i];
-                Line line = new Line(pair.getKey().x, pair.getKey().y, pair.getValue().x + img.getWidth(), pair.getValue().y);
-                line.setStroke(randomColor());
-                root.getChildren().add(line);
+                double endX = pair.getValue().x;
+                double endY = pair.getValue().y;
+                if (endX > 0 && endX < img.getWidth() && endY > 0 && endY < img.getHeight()) {
+                    Line line = new Line(pair.getKey().x, pair.getKey().y, endX + img.getWidth(), endY);
+                    line.setStroke(randomColor());
+                    root.getChildren().add(line);
+                }
             }
         }
         return root;
