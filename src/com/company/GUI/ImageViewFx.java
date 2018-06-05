@@ -29,13 +29,13 @@ public class ImageViewFx extends Application {
     PointPair[] matches;
 
     private Parent createContent() {
-        String fileName = "samochod";
+        String fileName = "cosmos";
         String fileName2 = fileName+"2";
         //fileName2 = "7";
         this.image1 = new SiftImage(Const.PATH_SIFT + fileName + ".png.haraff.sift");
         this.image2 = new SiftImage(Const.PATH_SIFT + fileName2 + ".png.haraff.sift");
-        //this.matches = image1.getConsistentPairs(image2, 15, 2);
-        this.matches = image1.getRANSACPairs(image2, true);
+        this.matches = image1.getConsistentPairs(image2, 15, 2);
+        //this.matches = image1.getRANSACPairs(image2, false);
         System.out.println(Arrays.toString(matches));
         this.img = new Image(Const.PATH_PNG + fileName + ".png/");
         this.img2 = new Image(Const.PATH_PNG + fileName2 + ".png/");
@@ -78,7 +78,7 @@ public class ImageViewFx extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Scene scene = new Scene(createContent(), Math.min(img.getWidth() + img2.getWidth(), 1000),
+        Scene scene = new Scene(createContent(), Math.min(img.getWidth() + img2.getWidth(), 1200),
                 Math.min(Math.max(img.getHeight(), img2.getHeight()), 680));
         primaryStage.setTitle("Pary punktów kluczowych");
         primaryStage.setScene(scene);
