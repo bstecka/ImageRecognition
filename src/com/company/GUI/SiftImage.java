@@ -93,9 +93,9 @@ public class SiftImage {
         return samples;
     }
 
-    public SimpleMatrix getBestModelRANSAC(SiftImage otherImage, int iterations, boolean perspective) {
+    public SimpleMatrix getBestModelRANSAC(SiftImage otherImage, int iterations, boolean perspective, int maxError) {
         SimpleMatrix bestModel = null;
-        double bestScore = 0, maxError = Integer.MIN_VALUE;
+        double bestScore = 0;
         PointPair[] pairs = getKeyPointPairs(otherImage), samples;
         for (int i = 0; i < iterations; i++) {
             SimpleMatrix model = null;
@@ -118,8 +118,6 @@ public class SiftImage {
                         error = getErrorAffine(model, pairs[j]);
                     if (error < maxError)
                         score++;
-                    else if (error > maxError)
-                        maxError = error;
                 }
                 if (score > bestScore) {
                     bestScore = score;
@@ -133,7 +131,7 @@ public class SiftImage {
     }
 
     public PointPair[] getRANSACPairs(SiftImage otherImage, boolean perspective) {
-        SimpleMatrix model = getBestModelRANSAC(otherImage, 6000, perspective);
+        SimpleMatrix model = getBestModelRANSAC(otherImage, 6000, perspective, 100);
         PointPair[] pairs = getKeyPointPairs(otherImage);
         PointPair[] RANSACPairs = new PointPair[pairs.length];
         for (int i = 0; i < pairs.length; i++){
